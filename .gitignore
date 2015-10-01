@@ -1,0 +1,17 @@
+*~
+#*#
+
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+build.properties
+Tagger_TagMe-*.zip
+TEST-*.xml
+TESTS-TestSuites.xml
+junit-noframes.html
+
+hs_err_*.log
