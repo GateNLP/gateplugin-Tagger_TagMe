@@ -1,0 +1,7 @@
+<CREOLE-DIRECTORY>
+  <JAR SCAN="true">Tagger_TagMe.jar</JAR>
+  <JAR>lib/fluent-hc-4.3.2.jar</JAR>
+  <JAR>lib/httpclient-4.3.2.jar</JAR>
+  <JAR>lib/httpclient-cache-4.3.2.jar</JAR>
+  <JAR>lib/httpcore-4.3.2.jar</JAR>
+</CREOLE-DIRECTORY>
