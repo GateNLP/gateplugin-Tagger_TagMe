@@ -63,7 +63,7 @@ public class TaggerTagMeWS
   @RunTime
   @Optional
   @CreoleParameter(
-          comment = "Input annotation set",
+          comment = "Input annotation set for containing annotations, default is the default set",
           defaultValue = "")
   public void setInputAnnotationSet(String ias) {
     inputASName = ias;
@@ -79,7 +79,7 @@ public class TaggerTagMeWS
   @RunTime
   @Optional
   @CreoleParameter(
-          comment = "The optional containing annotation set type",
+          comment = "Only text covered by each containing annotation is annotated, default: annotate whole document",
           defaultValue = "")
   public void setContainingAnnotationType(String val) {
     this.containingType = val;
@@ -95,7 +95,7 @@ public class TaggerTagMeWS
   @RunTime
   @Optional
   @CreoleParameter(
-          comment = "Output annotation set",
+          comment = "Output annotation set, default is default annotation set",
           defaultValue = "")
   public void setOutputAnnotationSet(String ias) {
     outputASName = ias;
@@ -109,7 +109,7 @@ public class TaggerTagMeWS
   @RunTime
   @Optional
   @CreoleParameter(
-          comment = "The output annotation type",
+          comment = "The output annotation type, default is 'Lookup'",
           defaultValue = "Lookup")
   public void setOutputAnnotationType(String val) {
     this.outputType = val;
@@ -135,7 +135,7 @@ public class TaggerTagMeWS
   
   @RunTime
   @CreoleParameter(
-          comment = "The api key to use",
+          comment = "The api key to use, required, no default",
           defaultValue = ""
           )
   public void setApiKey(String key) {
@@ -187,6 +187,17 @@ public class TaggerTagMeWS
   }
 
   protected Double epsilon = 0.3;
+  
+  @RunTime
+  @CreoleParameter(
+          comment = "Minimum value of rho: all annotations with a rho less than this will be ignored",
+          defaultValue = "0.0"
+  )
+  public void setMinRho(Double value) {
+    minrho = value;
+  }
+  public Double getMinRho() { return minrho; }
+  protected double minrho = 0.0;
     
   static final Logger logger = Logger.getLogger(TaggerTagMeWS.class);
   
@@ -277,22 +288,24 @@ public class TaggerTagMeWS
     }
     TagMeAnnotation[] tagmeAnnotations = getTagMeAnnotations(text);
     for(TagMeAnnotation tagmeAnn : tagmeAnnotations) {
-      FeatureMap fm = Factory.newFeatureMap();
-      fm.put("tagMeId", tagmeAnn.id);
-      fm.put("title", tagmeAnn.title);
-      fm.put("rho",tagmeAnn.rho);
-      fm.put("spot",tagmeAnn.spot);
-      if(tagmeAnn.title == null) {
-        throw new GateRuntimeException("Odd: got a null title from the TagMe service"+tagmeAnn);
-      } else {
-        fm.put("inst","http://dbpedia.org/resource/"+recodeForDbp38(tagmeAnn.title));
-      }
-      try {
-        gate.Utils.addAnn(outputAS,from+tagmeAnn.start,from+tagmeAnn.end,getOutputAnnotationType(),fm);
-      } catch (Exception ex) {
-        System.err.println("Got an exception in document "+doc.getName()+": "+ex.getLocalizedMessage());
-        ex.printStackTrace(System.err);
-        System.err.println("from="+from+", to="+to+" TagMeAnn="+tagmeAnn);
+      if(tagmeAnn.rho >= minrho) {
+        FeatureMap fm = Factory.newFeatureMap();
+        fm.put("tagMeId", tagmeAnn.id);
+        fm.put("title", tagmeAnn.title);
+        fm.put("rho", tagmeAnn.rho);
+        fm.put("spot", tagmeAnn.spot);
+        if (tagmeAnn.title == null) {
+          throw new GateRuntimeException("Odd: got a null title from the TagMe service" + tagmeAnn);
+        } else {
+          fm.put("inst", "http://dbpedia.org/resource/" + recodeForDbp38(tagmeAnn.title));
+        }
+        try {
+          gate.Utils.addAnn(outputAS, from + tagmeAnn.start, from + tagmeAnn.end, getOutputAnnotationType(), fm);
+        } catch (Exception ex) {
+          System.err.println("Got an exception in document " + doc.getName() + ": " + ex.getLocalizedMessage());
+          ex.printStackTrace(System.err);
+          System.err.println("from=" + from + ", to=" + to + " TagMeAnn=" + tagmeAnn);
+        }
       }
     }
   }
