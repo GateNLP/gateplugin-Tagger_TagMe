@@ -1,4 +1,9 @@
-<CREOLE-DIRECTORY>
+<CREOLE-DIRECTORY
+  ID="gate.tagger.Tagger_TagMe" 
+  VERSION="1.0" 
+  DESCRIPTION="Tagger for the TagMe tagging service"
+  HELPURL="https://github.com/SheffieldGATE/gateplugin-Tagger_TagMe/wiki"
+>
   <JAR SCAN="true">Tagger_TagMe.jar</JAR>
   <JAR>lib/fluent-hc-4.3.2.jar</JAR>
   <JAR>lib/httpclient-4.3.2.jar</JAR>

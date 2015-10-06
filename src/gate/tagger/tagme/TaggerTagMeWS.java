@@ -37,7 +37,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -53,7 +52,10 @@ import org.apache.log4j.Logger;
  * 
  */
 @CreoleResource(name = "Tagger_TagMe",
-        comment = "Annotate documents using a TagMe web service")
+        comment = "Annotate documents using a TagMe web service",
+        // icon="taggerIcon.gif",
+        helpURL="https://github.com/SheffieldGATE/gateplugin-Tagger_TagMe/wiki/Tagger_TagMe"
+)
 public class TaggerTagMeWS  
   extends AbstractLanguageAnalyser  {
 
