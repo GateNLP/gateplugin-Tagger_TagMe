@@ -3,10 +3,10 @@ gateplugin-Tagger_TagMe
 
 A plugin for the <a href="https://gate.ac.uk">GATE language technology</a> 
 framework that provides a PR for annotating/tagging documents using the
-<a href="http://tagme.di.unipi.it/tagme_help.html">TagMe API</a>.
+<a href="https://tagme.d4science.org/tagme/tagme_help.html">TagMe API</a>.
 
 For more information please consult the Wiki: 
-https://github.com/SheffieldGATE/gateplugin-Tagger_TagMe/wiki
+https://github.com/johann-petrak/gateplugin-Tagger_TagMe/wiki
 
 Notes:
 
