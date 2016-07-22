@@ -126,7 +126,9 @@ public class TaggerTagMeWS
   @RunTime
   @CreoleParameter( 
           comment = "The URL of the web service to use",
-          defaultValue = "http://tagme.di.unipi.it/tag")
+          defaultValue = "https://tagme.d4science.org/tagme/tag")
+          // This was the old service URL
+          // defaultValue = "http://tagme.di.unipi.it/tag")
   public void setTagMeServiceUrl(URL url) {
     tagMeServiceUrl = url;
   }
@@ -137,7 +139,7 @@ public class TaggerTagMeWS
   
   @RunTime
   @CreoleParameter(
-          comment = "The api key to use, required, no default",
+          comment = "The service auth token to use, required, no default",
           defaultValue = ""
           )
   public void setApiKey(String key) {
@@ -164,7 +166,7 @@ public class TaggerTagMeWS
   
   @RunTime
   @CreoleParameter(
-          comment = "Language code, currently supported: en,it",
+          comment = "Language code, currently supported: en,it,de",
           defaultValue = "en"
           )
   public void setLanguageCode(String code) {
@@ -323,7 +325,7 @@ public class TaggerTagMeWS
     req.addHeader("Content-Type","application/x-www-form-urlencoded");
     req.bodyForm(Form.form()
             .add("text", text)
-            .add("key",getApiKey())
+            .add("gcube-token",getApiKey())
             .add("lang",getLanguageCode())
             .add("tweet",getIsTweet().toString())
             .add("include_abstract","false")
@@ -374,6 +376,7 @@ public class TaggerTagMeWS
     public int start = 0;
     public int end = 0;    
     public double rho = 0.0;
+    public double link_probability = 0.0;
     public String spot = "";
     @Override 
     public String toString() {
@@ -386,6 +389,7 @@ public class TaggerTagMeWS
     public int time = 0;
     public String api = "";
     public String lang = "";
+    public String test = "";
     public TagMeAnnotation[] annotations = null;
   }
   
