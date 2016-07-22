@@ -298,6 +298,7 @@ public class TaggerTagMeWS
         fm.put("title", tagmeAnn.title);
         fm.put("rho", tagmeAnn.rho);
         fm.put("spot", tagmeAnn.spot);
+        fm.put("link_probability",tagmeAnn.link_probability);
         if (tagmeAnn.title == null) {
           throw new GateRuntimeException("Odd: got a null title from the TagMe service" + tagmeAnn);
         } else {
