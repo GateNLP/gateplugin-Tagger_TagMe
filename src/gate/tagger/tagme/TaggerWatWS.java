@@ -48,17 +48,18 @@ import org.apache.http.client.fluent.Form;
 
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 
 /** 
- *  PR for using the TagMe service api for entity linking.
+ *  PR for using the WAT service api for entity linking.
  */
-@CreoleResource(name = "Tagger_TagMe",
-        comment = "Annotate documents using a TagMe web service",
+@CreoleResource(name = "Tagger_WAT",
+        comment = "Annotate documents using a WAT web service",
         // icon="taggerIcon.gif",
-        helpURL="https://github.com/GateNLP/gateplugin-Tagger_TagMe/wiki/Tagger_TagMe"
+        helpURL="https://github.com/GateNLP/gateplugin-Tagger_TagMe/wiki/Tagger_WAT"
 )
-public class TaggerTagMeWS  
+public class TaggerWatWS  
   extends AbstractLanguageAnalyser  {
 
   private static final long serialVersionUID = 5322455999996492868L;
@@ -128,7 +129,7 @@ public class TaggerTagMeWS
   @RunTime
   @CreoleParameter( 
           comment = "The URL of the web service to use",
-          defaultValue = "https://tagme.d4science.org/tagme/tag")
+          defaultValue = "https://wat.d4science.org/wat/tag/tag")
   public void setTagMeServiceUrl(URL url) {
     tagMeServiceUrl = url;
   }
@@ -150,18 +151,6 @@ public class TaggerTagMeWS
   }
   protected String apiKey = "";
   
-  @RunTime
-  @CreoleParameter(
-          comment = "Should be true if the text is a tweet or very short",
-          defaultValue = "false"
-          )
-  public void setIsTweet(Boolean flag) {
-    isTweet = flag;
-  }
-  public Boolean getIsTweet() {
-    return isTweet;
-  }
-  protected Boolean isTweet = false;
   
   
   @RunTime
@@ -178,32 +167,8 @@ public class TaggerTagMeWS
 
   protected String languageCode = "en";
   
-  @RunTime
-  @CreoleParameter(
-          comment = "Epsilon: balance between context and commonness, useful range is 0.0 to 0.5",
-          defaultValue = "0.3"
-          )
-  public void setEpsilon(Double value) {
-    epsilon = value;
-  }
-  public Double getEpsilon() {
-    return epsilon;
-  }
-
-  protected Double epsilon = 0.3;
-  
-  @RunTime
-  @CreoleParameter(
-          comment = "Minimum value of rho: all annotations with a rho less than this will be ignored",
-          defaultValue = "0.2"
-  )
-  public void setMinRho(Double value) {
-    minrho = value;
-  }
-  public Double getMinRho() { return minrho; }
-  protected double minrho = 0.2;
     
-  static final Logger logger = Logger.getLogger(TaggerTagMeWS.class);
+  static final Logger logger = Logger.getLogger(TaggerWatWS.class);
   
   private static final Pattern patternUrl = 
           Pattern.compile("(?iu:www\\.[\\s]+)|(?iu:https?://[^\\s]+)");
@@ -263,42 +228,13 @@ public class TaggerTagMeWS
     //System.out.println("Annotating text: "+text);
     //System.out.println("Starting offset is "+from);
     
-    // NOTE: there is a bug in the TagMe service which causes offset errors
-    // if we use the tweet mode and there are certain patterns in the tweet.
-    // The approach recommended by Francesco Piccinno is to replace those 
-    // patterns by spaces.    
-    if(getIsTweet()) {
-      logger.debug("Text before cleaning: >>"+text+"<<");
-      // replace 
-      text = text.replaceAll(patternStringRT3, "    ");
-      text = text.replaceAll(patternStringRT2, "   ");
-      text = text.replaceAll(patternHashTag, " $1");
-      // now replace the remaining patterns by spaces
-      StringBuilder sb = new StringBuilder(text);
-      Matcher m = patternUrl.matcher(text);
-      while(m.find()) {
-        int start = m.start();
-        int end = m.end();
-        sb.replace(start, end, nSpaces(end-start));
-      }
-      m = patternUser.matcher(text);
-      while(m.find()) {
-        int start = m.start();
-        int end = m.end();
-        sb.replace(start, end, nSpaces(end-start));
-      } 
-      text = sb.toString();
-      logger.debug("Text after cleaning:  >>"+text+"<<");
-    }
-    TagMeAnnotation[] tagmeAnnotations = getTagMeAnnotations(text);
-    for(TagMeAnnotation tagmeAnn : tagmeAnnotations) {
-      if(tagmeAnn.rho >= minrho) {
+    WatAnnotation[] tagmeAnnotations = getTagMeAnnotations(text);
+    for(WatAnnotation tagmeAnn : tagmeAnnotations) {
         FeatureMap fm = Factory.newFeatureMap();
         fm.put("tagMeId", tagmeAnn.id);
         fm.put("title", tagmeAnn.title);
         fm.put("rho", tagmeAnn.rho);
         fm.put("spot", tagmeAnn.spot);
-        fm.put("link_probability",tagmeAnn.link_probability);
         if (tagmeAnn.title == null) {
           throw new GateRuntimeException("Odd: got a null title from the TagMe service" + tagmeAnn);
         } else {
@@ -311,31 +247,30 @@ public class TaggerTagMeWS
           ex.printStackTrace(System.err);
           System.err.println("from=" + from + ", to=" + to + " TagMeAnn=" + tagmeAnn);
         }
-      }
+      
     }
   }
     
-  protected TagMeAnnotation[] getTagMeAnnotations(String text) {
+  protected WatAnnotation[] getTagMeAnnotations(String text) {
     String str = retrieveServerResponse(text);
     return convertStringToTagMeAnnotations02(str);
   }
   
   protected String retrieveServerResponse(String text) {
-    Request req = Request.Post(getTagMeServiceUrl().toString());
+    URI uri;
+    try {
+      uri = new URIBuilder(getTagMeServiceUrl().toURI())
+              .setParameter("text", text)
+              .setParameter("gcube-token",getApiKey())
+              .setParameter("lang",getLanguageCode())
+              .build();
+    } catch (URISyntaxException ex) {
+      throw new GateRuntimeException("Could not create URI for the request",ex);
+    }
+        
+    System.err.println("DEBUG: WAT URL="+uri);
+    Request req = Request.Get(uri);
     
-    req.addHeader("Content-Type","application/x-www-form-urlencoded");
-    req.bodyForm(Form.form()
-            .add("text", text)
-            .add("gcube-token",getApiKey())
-            .add("lang",getLanguageCode())
-            .add("tweet",getIsTweet().toString())
-            .add("include_abstract","false")
-            .add("include_categories","false")
-            .add("include_all_spots","false")
-            .add("long_text","0")
-            .add("epsilon",getEpsilon().toString())
-            .build(),Consts.UTF_8);    
-    logger.debug("Request is "+req);
     Response res = null;
     try {
       res = req.execute();
@@ -349,7 +284,7 @@ public class TaggerTagMeWS
       throw new GateRuntimeException("Problem getting HTTP response content: "+res,ex);
     } 
     String ret = cont.asString();
-    logger.debug("TagMe server response "+ret);
+    logger.debug("WAT server response "+ret);
     return ret;
   }
   
@@ -357,13 +292,12 @@ public class TaggerTagMeWS
   // second version of the conversion code: this uses classes to represent
   // the format of the JSON we expect and should be less clumsy, but may 
   // be slower
-  protected TagMeAnnotation[] convertStringToTagMeAnnotations02(String str) {
-    List<TagMeAnnotation> tagmeAnnotations = new ArrayList<TagMeAnnotation>();
+  protected WatAnnotation[] convertStringToTagMeAnnotations02(String str) {
     // parse the String as JSON
     ObjectMapper mapper = new ObjectMapper();
-    TagMeJsonData data = null;
+    WatJsonData data = null;
     try {
-      data = mapper.readValue(str, TagMeJsonData.class);
+      data = mapper.readValue(str, WatJsonData.class);
     } catch (Exception ex) {
       throw new GateRuntimeException("Problem parsing the returned JSON as TagMeJsonData "+str,ex);
     }
@@ -371,27 +305,22 @@ public class TaggerTagMeWS
   }
   
   
-  protected static class TagMeAnnotation {
+  protected static class WatAnnotation {
     public int id = 0;    
     public String title = "";
     public int start = 0;
     public int end = 0;    
     public double rho = 0.0;
-    public double link_probability = 0.0;
     public String spot = "";
     @Override 
     public String toString() {
-      return "TagMeAnnotation(id="+id+",rho="+rho+",title="+title+",offset="+start+", end="+end+")";
+      return "WatAnnotation(id="+id+",rho="+rho+",title="+title+",offset="+start+", end="+end+")";
     }
   }
   
-  protected static class TagMeJsonData {
-    public String timestamp = "";
-    public int time = 0;
-    public String api = "";
-    public String lang = "";
-    public String test = "";
-    public TagMeAnnotation[] annotations = null;
+  protected static class WatJsonData {
+    public Object metrics = ""; // we do not care about this one
+    public WatAnnotation[] annotations = null;
   }
   
   // UTILITY methods
