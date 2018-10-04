@@ -206,7 +206,7 @@ public class TaggerWatWS
     if (containingType == null || containingType.isEmpty()) {
       annotateText(document,outputAS,0,document.getContent().size());
     } else {
-      AnnotationSet inputAS = null;
+      AnnotationSet inputAS;
       if (inputASName == null
               || inputASName.isEmpty()) {
         inputAS = theDocument.getAnnotations();
@@ -230,7 +230,7 @@ public class TaggerWatWS
       throw new GateRuntimeException("Unexpected offset exception, offsets are "+from+"/"+to);
     }
     // send the text to the service and get back the response
-    //System.out.println("Annotating text: "+text);
+    // System.out.println("DEBUG: Annotating text from="+from+", to="+to+", text="+text);
     //System.out.println("Starting offset is "+from);
     
     WatAnnotation[] tagmeAnnotations = getTagMeAnnotations(text);
@@ -276,7 +276,7 @@ public class TaggerWatWS
       throw new GateRuntimeException("Could not create URI for the request",ex);
     }
         
-    System.err.println("DEBUG: WAT URL="+uri);
+    //System.err.println("DEBUG: WAT URL="+uri);
     Request req = Request.Get(uri);
     
     Response res = null;
