@@ -37,14 +37,9 @@ import gate.util.InvalidOffsetException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.http.Consts;
 import org.apache.http.client.fluent.Content;
-import org.apache.http.client.fluent.Form;
 
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
@@ -167,6 +162,16 @@ public class TaggerWatWS
 
   protected String languageCode = "en";
   
+  @RunTime
+  @CreoleParameter(
+          comment = "Minimum value of rho: all annotations with a rho less than this will be ignored",
+          defaultValue = "0.2"
+  )
+  public void setMinRho(Double value) {
+    minrho = value;
+  }
+  public Double getMinRho() { return minrho; }
+  protected double minrho = 0.2;
     
   static final Logger logger = Logger.getLogger(TaggerWatWS.class);
   
@@ -230,6 +235,9 @@ public class TaggerWatWS
     
     WatAnnotation[] tagmeAnnotations = getTagMeAnnotations(text);
     for(WatAnnotation tagmeAnn : tagmeAnnotations) {
+        if(tagmeAnn.rho < minrho) {
+          continue;
+        }
         FeatureMap fm = Factory.newFeatureMap();
         fm.put("tagMeId", tagmeAnn.id);
         fm.put("title", tagmeAnn.title);

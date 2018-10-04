@@ -191,6 +191,22 @@ public class TaggerTagMeWS
   }
 
   protected Double epsilon = 0.3;
+
+  @RunTime
+  @CreoleParameter(
+          comment = "long_text parameter sent to the service, value 0 (default) or a positive integer",
+          defaultValue = "0"
+          )
+  public void setLongText(Integer value) {
+    long_text = value;
+  }
+  public Integer getLongText() {
+    return long_text;
+  }
+
+  protected Integer long_text = 0;
+
+
   
   @RunTime
   @CreoleParameter(
@@ -332,7 +348,7 @@ public class TaggerTagMeWS
             .add("include_abstract","false")
             .add("include_categories","false")
             .add("include_all_spots","false")
-            .add("long_text","0")
+            .add("long_text",getLongText().toString())
             .add("epsilon",getEpsilon().toString())
             .build(),Consts.UTF_8);    
     logger.debug("Request is "+req);
